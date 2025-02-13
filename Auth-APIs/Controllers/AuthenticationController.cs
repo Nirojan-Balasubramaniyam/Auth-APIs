@@ -1,4 +1,6 @@
-﻿using Auth_APIs.DTOs.Request;
+﻿using System.Security.Claims;
+using Auth_APIs.DTOs.Request;
+using Auth_APIs.Enum;
 using Auth_APIs.IService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -43,8 +45,16 @@ namespace Auth_APIs.Controllers
         [HttpGet("user/{id}")]
         public async Task<IActionResult> GetUserById(int id)
         {
-            var user = await _authService.GetUserById(id);
-            return Ok(user);
+            var userEmail = User.FindFirstValue(ClaimTypes.Name);  // Get email from JWT token
+            var loggedInUser = await _authService.GetUserByEmail(userEmail);
+
+            if (loggedInUser.Role == UserRole.Admin || loggedInUser.Id == id)
+            {
+                var user = await _authService.GetUserById(id);
+                return Ok(user);
+            }
+
+            return Forbid();  // Restrict access if not admin or the same user
         }
     }
 }

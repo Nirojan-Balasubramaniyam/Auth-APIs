@@ -26,7 +26,7 @@ namespace Auth_APIs.Repositories
         }
         public async Task<IEnumerable<User>> GetAllUsers()
         {
-            var userList = await _dbContext.Users.ToListAsync();
+            var userList = await _dbContext.Users.Include(u=>u.UserTasks).ToListAsync();
             return userList;
         }
         public async Task<User> GetUserById(int id)

@@ -25,13 +25,20 @@ namespace Auth_APIs.Service
         public async Task<UserResponseDTO> Register(RegisterRequestDTO request)
         {
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
-            var user = new User { Name = request.Name, Email = request.Email, PasswordHash = hashedPassword };
+            var user = new User 
+            {
+                Name = request.Name, 
+                Email = request.Email, 
+                PasswordHash = hashedPassword,
+                Role = request.Role,
+            };
             var addedUser = await _authRepository.AddUser(user);
             return new UserResponseDTO()
             {
                 Id = addedUser.Id,
                 Name = addedUser.Name,
                 Email = addedUser.Email,
+                Role = addedUser.Role,
             };
         }
 
@@ -51,6 +58,7 @@ namespace Auth_APIs.Service
                 Id = user.Id,
                 Name = user.Name,
                 Email = user.Email,
+                Role = user.Role,
             });
         }
         public async Task<UserResponseDTO> GetUserById(int id)
@@ -61,12 +69,30 @@ namespace Auth_APIs.Service
                 Id = user.Id,
                 Name = user.Name,
                 Email = user.Email,
+                Role = user.Role,
+            };
+        }
+
+        public async Task<UserResponseDTO> GetUserByEmail(string email)
+        {
+            var user = await _authRepository.GetUserByEmail(email);
+            return new UserResponseDTO()
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Email = user.Email,
+                Role = user.Role,
             };
         }
 
         private string GenerateToken(User user)
         {
-            var claims = new[] { new Claim(ClaimTypes.Name, user.Email) };
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, user.Email),
+                new Claim(ClaimTypes.Role, user.Role.ToString()) 
+            };
+
             var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var token = new JwtSecurityToken(_configuration["Jwt:Issuer"], _configuration["Jwt:Audience"], claims, expires: DateTime.UtcNow.AddHours(1), signingCredentials: creds);

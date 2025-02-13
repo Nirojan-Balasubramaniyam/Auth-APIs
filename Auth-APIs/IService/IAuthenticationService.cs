@@ -9,6 +9,7 @@ namespace Auth_APIs.IService
         Task<UserResponseDTO> Register(RegisterRequestDTO request);
         Task<string> Login(LoginRequestDTO request);
         Task<IEnumerable<UserResponseDTO>> GetAllUsers();
+        Task<UserResponseDTO> GetUserByEmail(string email);
         Task<UserResponseDTO> GetUserById(int id);
     }
 }
