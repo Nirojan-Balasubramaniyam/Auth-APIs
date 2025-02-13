@@ -22,39 +22,68 @@ namespace Auth_APIs.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterRequestDTO request)
         {
-            var addedUser = await _authService.Register(request);
-            return Ok(new { message = "User registered successfully", addedUser });
+            try
+            {
+                var addedUser = await _authService.Register(request);
+                return Ok(new { message = "User registered successfully", addedUser });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "An error occurred while registering the user", error = ex.Message });
+            }
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginRequestDTO request)
         {
-            var token = await _authService.Login(request);
-            return Ok(new { token });
+            try
+            {
+                var token = await _authService.Login(request);
+                return Ok(new { token });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "An error occurred while logging in", error = ex.Message });
+            }
         }
 
         [Authorize]
         [HttpGet("users")]
         public async Task<IActionResult> GetUsers()
         {
-            var users = await _authService.GetAllUsers();
-            return Ok(users);
+            try
+            {
+                var users = await _authService.GetAllUsers();
+                return Ok(users);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "An error occurred while fetching users", error = ex.Message });
+            }
         }
 
         [Authorize]
         [HttpGet("user/{id}")]
         public async Task<IActionResult> GetUserById(int id)
         {
-            var userEmail = User.FindFirstValue(ClaimTypes.Name);  // Get email from JWT token
-            var loggedInUser = await _authService.GetUserByEmail(userEmail);
-
-            if (loggedInUser.Role == UserRole.Admin || loggedInUser.Id == id)
+            try
             {
-                var user = await _authService.GetUserById(id);
-                return Ok(user);
-            }
+                var userEmail = User.FindFirstValue(ClaimTypes.Name);  // Get email from JWT token
+                var loggedInUser = await _authService.GetUserByEmail(userEmail);
 
-            return Forbid();  // Restrict access if not admin or the same user
+                if (loggedInUser.Role == UserRole.Admin || loggedInUser.Id == id)
+                {
+                    var user = await _authService.GetUserById(id);
+                    return Ok(user);
+                }
+
+                return Unauthorized(new { message = "Access denied" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "An error occurred while fetching the user", error = ex.Message });
+            }
         }
+
     }
 }

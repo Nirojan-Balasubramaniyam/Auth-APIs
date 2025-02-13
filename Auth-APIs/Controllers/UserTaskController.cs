@@ -18,60 +18,98 @@ namespace Auth_APIs.Controllers
             _taskService = taskService;
         }
 
-     
+
         [HttpPost]
         public async Task<IActionResult> AddTask(UserTaskRequestDTO request)
         {
-            var newTask = await _taskService.AddTask(request.UserId, request);
-            return Ok(new { message = "Task added successfully", newTask });
+            try
+            {
+                var newTask = await _taskService.AddTask(request.UserId, request);
+                return Ok(new { message = "Task added successfully", newTask });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "An error occurred while adding the task", error = ex.Message });
+            }
         }
 
-       
         [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> GetAllTasks()
         {
-            var tasks = await _taskService.GetAllTasks();
-            return Ok(tasks);
+            try
+            {
+                var tasks = await _taskService.GetAllTasks();
+                return Ok(tasks);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "An error occurred while retrieving tasks", error = ex.Message });
+            }
         }
 
-        
         [HttpGet("my-tasks")]
         public async Task<IActionResult> GetUserTasks()
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-            var tasks = await _taskService.GetTasksByUserId(userId);
-            return Ok(tasks);
+            try
+            {
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                var tasks = await _taskService.GetTasksByUserId(userId);
+                return Ok(tasks);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "An error occurred while retrieving user tasks", error = ex.Message });
+            }
         }
 
-        
         [HttpGet("{taskId}")]
         public async Task<IActionResult> GetTaskById(int taskId)
         {
-            var task = await _taskService.GetTaskById(taskId);
-            if (task == null)
-                return NotFound("Task not found");
-            return Ok(task);
+            try
+            {
+                var task = await _taskService.GetTaskById(taskId);
+                if (task == null)
+                    return NotFound("Task not found");
+                return Ok(task);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "An error occurred while retrieving the task", error = ex.Message });
+            }
         }
 
-        
         [HttpPut("{taskId}")]
         public async Task<IActionResult> UpdateTask(int taskId, UserTaskRequestDTO request)
         {
-            var updatedTask = await _taskService.UpdateTask(taskId, request);
-            if (updatedTask == null)
-                return NotFound("Task not found");
-            return Ok(new { message = "Task updated successfully", updatedTask });
+            try
+            {
+                var updatedTask = await _taskService.UpdateTask(taskId, request);
+                if (updatedTask == null)
+                    return NotFound("Task not found");
+                return Ok(new { message = "Task updated successfully", updatedTask });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "An error occurred while updating the task", error = ex.Message });
+            }
         }
 
-        
         [HttpDelete("{taskId}")]
         public async Task<IActionResult> DeleteTask(int taskId)
         {
-            var success = await _taskService.DeleteTask(taskId);
-            if (!success)
-                return NotFound("Task not found");
-            return Ok(new { message = "Task deleted successfully" });
+            try
+            {
+                var success = await _taskService.DeleteTask(taskId);
+                if (!success)
+                    return NotFound("Task not found");
+                return Ok(new { message = "Task deleted successfully" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "An error occurred while deleting the task", error = ex.Message });
+            }
         }
+
     }
 }
